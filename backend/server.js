@@ -14,7 +14,10 @@ const SAMBANOVA_API_KEY = process.env.SAMBANOVA_API_KEY;
 app.post("/summarize", async (req, res) => {
   const { text } = req.body;
 
+  if (!text) return res.status(400).json({ error: "No text provided" });
+
   try {
+    // Call SambaNova AI
     const response = await axios.post(
       "https://api.sambanova.ai/v1/chat/completions",
       {
@@ -22,8 +25,13 @@ app.post("/summarize", async (req, res) => {
         messages: [
           {
             role: "system",
-            content:
-              "You are an assistant that summarizes text and lists action items clearly in bullet points, mentioning the person responsible if possible. Do not add any bold formatting."
+            content: `
+You are an assistant that summarizes conversations.
+Always respond strictly in JSON format with these two fields:
+1. "summary": a short summary of the conversation.
+2. "actionItems": an array of tasks in the format "Person: Task".
+Do not include any text outside the JSON object. Do not include "Summary" or "Action Items" headers.
+`
           },
           { role: "user", content: text }
         ]
@@ -36,46 +44,29 @@ app.post("/summarize", async (req, res) => {
       }
     );
 
-    let aiText = response.data.choices[0].message.content || "";
-    aiText = aiText.replace(/\*\*/g, "").trim(); // remove any **
+    const aiText = response.data.choices[0].message.content || "";
 
-    // Split summary and action items
-    let summary = "";
-    let actionItemsText = "";
-    const splitIndex = aiText.indexOf("Action Items:");
-    if (splitIndex !== -1) {
-      summary = aiText.slice(0, splitIndex).trim();
-      actionItemsText = aiText.slice(splitIndex + "Action Items:".length).trim();
-    } else {
-      summary = aiText;
+    // Parse JSON strictly
+    let parsed;
+    try {
+      parsed = JSON.parse(aiText);
+    } catch (jsonErr) {
+      console.error("JSON parse error:", jsonErr, "AI output:", aiText);
+      return res.status(500).json({ error: "Failed to parse AI JSON output" });
     }
 
-    // Split individual action items
-    const actionItems = actionItemsText
-      .split(/\n|•|-/)
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    // Ensure actionItems format
+    parsed.actionItems = parsed.actionItems.map(item =>
+      item.includes(":") ? item.trim() : `---: ${item.trim()}`
+    );
 
-    // Assign tasks
-    const assigned = { Bob: [], Alice: [], Both: [] };
-    actionItems.forEach(item => {
-      let cleanItem = item.replace(/\*\*/g, "").trim();
-      const lower = cleanItem.toLowerCase();
-
-      if (lower.includes("bob") && !lower.includes("alice")) {
-        assigned.Bob.push(cleanItem.replace(/bob[:]?/i, "").trim());
-      } else if (lower.includes("alice") && !lower.includes("bob")) {
-        assigned.Alice.push(cleanItem.replace(/alice[:]?/i, "").trim());
-      } else {
-        cleanItem = cleanItem.replace(/^(and\s+)?(alice|bob)[:]?/gi, "").trim();
-        if (cleanItem) assigned.Both.push(cleanItem);
-      }
+    res.json({
+      summary: parsed.summary,
+      actionItems: parsed.actionItems
     });
 
-    res.json({ summary, assigned }); // always send arrays
-
   } catch (err) {
-    console.error("SambaNova error:", err.response?.data || err.message);
+    console.error("Error:", err.response?.data || err.message);
     res.status(500).json({ error: "Failed to summarize" });
   }
 });

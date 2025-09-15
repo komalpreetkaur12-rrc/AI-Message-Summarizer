@@ -3,7 +3,7 @@ import { useState } from "react";
 function App() {
   const [text, setText] = useState("");
   const [summary, setSummary] = useState("");
-  const [assigned, setAssigned] = useState({ Bob: [], Alice: [], Both: [] });
+  const [assigned, setAssigned] = useState({});
   const [loading, setLoading] = useState(false);
 
   const handleSummarize = async () => {
@@ -19,11 +19,21 @@ function App() {
 
       const data = await response.json();
       setSummary(data.summary);
-      setAssigned(data.assigned || { Bob: [], Alice: [], Both: [] });
+
+      // Convert actionItems array to object keyed by person
+      const assignedObj = {};
+      data.actionItems.forEach(item => {
+        const [person, task] = item.split(":").map(s => s.trim());
+        if (!assignedObj[person]) assignedObj[person] = [];
+        assignedObj[person].push(task);
+      });
+
+      setAssigned(assignedObj);
+
     } catch (err) {
       console.error("Error:", err);
       setSummary("Failed to summarize.");
-      setAssigned({ Bob: [], Alice: [], Both: [] });
+      setAssigned({});
     } finally {
       setLoading(false);
     }
@@ -51,12 +61,19 @@ function App() {
         </>
       )}
 
-      {Object.values(assigned).some(arr => arr.length > 0) && (
+      {Object.keys(assigned).length > 0 && (
         <>
           <h2>Action Items</h2>
-          {assigned.Bob.length > 0 && <p><strong>Bob:</strong> {assigned.Bob.join(", ")}</p>}
-          {assigned.Alice.length > 0 && <p><strong>Alice:</strong> {assigned.Alice.join(", ")}</p>}
-          {assigned.Both.length > 0 && <p><strong>Both:</strong> {assigned.Both.join(", ")}</p>}
+          {Object.entries(assigned).map(([person, tasks]) => (
+            <div key={person} style={{ marginBottom: "10px" }}>
+              <strong>{person}:</strong>
+              <ul>
+                {tasks.map((task, idx) => (
+                  <li key={idx}>{task}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </>
       )}
     </div>
