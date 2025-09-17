@@ -21,7 +21,7 @@ export default function App() {
     setLoading(true);
     setError("");
     try {
-      const response = await fetch("http://localhost:5000/summarize", {
+      const response = await fetch("/api/summarize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ text }),
