@@ -3,22 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
-    "build": "next build --turbopack",
-    "lint": "eslint",
-    "backend": "npm run dev --prefix ../backend",
-    "start": "concurrently \"npm run backend\" \"npm run dev\""
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
   },
   "dependencies": {
     "framer-motion": "^12.23.13",
     "next": "15.5.3",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4",
-    "concurrently": "^9.2.1",
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4"
