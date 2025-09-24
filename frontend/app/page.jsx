@@ -195,7 +195,7 @@ export default function App() {
                         <button
                           onClick={() =>
                             setText(
-                              "Alice: Prepare the deck.\nBob: Collect metrics.\nAlice: Ship v1 by Friday.\nCara: Draft release notes."
+                              "Alice: Alright team, let’s sync.\nBob: Sure — what’s first on the list?\nAlice: I’ll prepare the project timeline by tomorrow.\nCara: I’ll reach out to the client for feedback today.\nDavid: I’ll draft the budget sheet and share it tonight.\nBob: Got it, I’ll update the documentation.\nAlice: Perfect, let’s aim to review all updates in tomorrow’s meeting.\nCara: I’ll also set up the meeting invite.\nDavid: Good, I’ll be ready with numbers by then.\nBob: Great, let’s stick to the plan!\n"
                             )
                           }
                           className="rounded-md border border-cyan-500/30 bg-cyan-500/10 px-2.5 py-1 text-cyan-200 hover:bg-cyan-500/20"
